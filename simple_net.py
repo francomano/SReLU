@@ -33,6 +33,7 @@ tensor_y_test=torch.tensor(ytest)
 my_dataset_test = torch.utils.data.TensorDataset(tensor_x_test,tensor_y_test) 
 test_loader = torch.utils.data.DataLoader(my_dataset_test, batch_size=64,shuffle=False)
 
+
 def accuracy(net, loader, device):
   acc = torchmetrics.Accuracy().to(device)
   for xb, yb in loader:
@@ -46,33 +47,28 @@ def accuracy(net, loader, device):
         else:
           ypred[i]=0
       #print(ypred)
-      pred=torch.split(ypred,int(ypred.shape[0]/net.srelu1.units))
-      t=torch.zeros(yb.shape[0],1).cuda()
-      for i in range(net.srelu1.units):
-        t+=pred[i]
-      pred=t/net.srelu1.units   
+      pred=ypred
       _ = acc(pred, yb.reshape(pred.shape[0],1))
   return acc.compute()
-
 
 
 
 class model(nn.Module):
     def __init__(self):
         super().__init__()
-        self.srelu1=srelu.SReLU(3)            #2 kernels for the srelu layer
-        self.srelu2=srelu.SReLU(1)
         self.fc1 = nn.Linear(24, 10)
+        self.srelu1=srelu.SReLU(10) 
         self.fc2=nn.Linear(10,4)
+        self.srelu2=srelu.SReLU(4)
         self.fc3=nn.Linear(4,1)
        
 
     def forward(self, x):
         x=self.fc1(x)
-        #x=F.relu(x)
         x=self.srelu1(x)
         x=self.fc2(x)
         x=self.srelu2(x)
+        #x=F.relu(x)
         return self.fc3(x)
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -96,11 +92,8 @@ for i in range(200):
     
     ypred=model(xb)
 
-    pred=torch.split(ypred,int(ypred.shape[0]/model.srelu1.units))
-    s=torch.zeros(yb.shape[0],1).cuda()
-    for j in range(model.srelu1.units):
-      s=s+pred[j]
-    pred=s/model.srelu1.units                      #take the mean of the predictions by the units kernels of the srelu layer
+    pred=ypred
+    
     l = loss(pred, yb.reshape(pred.shape[0],1))     
     #print(l.item())
     l.backward()

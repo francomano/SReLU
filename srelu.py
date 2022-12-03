@@ -18,14 +18,21 @@ class SReLU(nn.Module):
     
 
 
+
   def forward(self, inputs):
-    l=[]
-    for i in range(self.units):
-      y_left=torch.where(inputs<=self.t_left[i], self.a_left[i]*(inputs-self.t_left[i]), 0)
-      y_right=torch.where(inputs>=self.t_right[i], self.a_right[i]*(inputs-self.t_right[i]), 0)
+    i=0
+    #print(inputs.shape)
+    b = torch.Tensor(inputs.shape[1],inputs.shape[0]).to('cuda')
+    for x in torch.transpose(inputs,0,1):
+      y_left=torch.where(x<=self.t_left[i], self.a_left[i]*(x-self.t_left[i]), 0)
+      y_right=torch.where(x>=self.t_right[i], self.a_right[i]*(x-self.t_right[i]), 0)
       ris=torch.abs(y_left)+torch.abs(y_right)  #find all the non-zero elements  
-      center=torch.where(ris==0,inputs,0) #all the elements that are not out of the boundaries -> inputs
-      l.append(y_left+y_right+center)
-    b = torch.Tensor(self.units, inputs.shape[0], inputs.shape[1])
-    b=torch.cat(l)
-    return b
+      center=torch.where(ris==0,x,0) #all the elements that are not out of the boundaries -> inputs
+      
+      b[i]=y_left+y_right+center
+      i+=1
+    
+    torch.reshape(b,(inputs.shape[1],inputs.shape[0]))
+    #print(b.shape)
+    return torch.transpose(b,0,1)
+      
