@@ -22,7 +22,8 @@ class SReLU(nn.Module):
   def forward(self, inputs):
     i=0
     #print(inputs.shape)
-    b = torch.Tensor(inputs.shape[1],inputs.shape[0]).to('cuda')
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    b = torch.Tensor(inputs.shape[1],inputs.shape[0]).to(device)
     for x in torch.transpose(inputs,0,1):
       y_left=torch.where(x<=self.t_left[i], self.a_left[i]*(x-self.t_left[i]), 0)
       y_right=torch.where(x>=self.t_right[i], self.a_right[i]*(x-self.t_right[i]), 0)
