@@ -31,8 +31,6 @@ class SReLU(nn.Module):
       
       b[i]=y_left+y_right+center
       i+=1
-    
-    torch.reshape(b,(inputs.shape[1],inputs.shape[0]))
     #print(b.shape)
     return torch.transpose(b,0,1)
       

@@ -5,6 +5,7 @@ import torchmetrics
 import torchvision
 from torchvision import transforms as T
 from torch import nn
+from torch.nn import functional as F
 
 
 train_data = tfds.load('german_credit_numeric', split='train[:75%]', as_supervised=True)
@@ -66,6 +67,7 @@ class model(nn.Module):
     def forward(self, x):
         x=self.fc1(x)
         x=self.srelu1(x)
+        #x=F.relu(x)
         x=self.fc2(x)
         x=self.srelu2(x)
         #x=F.relu(x)
